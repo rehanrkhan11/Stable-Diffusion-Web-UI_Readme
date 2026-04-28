@@ -1,0 +1,338 @@
+# 🎨 Stable Diffusion Web UI
+
+> A powerful, feature-rich browser interface for [Stable Diffusion](https://github.com/Stability-AI/stablediffusion), built on top of the [Gradio](https://gradio.app/) framework. Turn text descriptions into stunning images — or transform existing images — entirely from your browser, with no coding required.
+
+---
+
+## ✨ What Is This?
+
+**Stable Diffusion Web UI** is an open-source front-end that wraps Stable Diffusion's AI image generation models in an easy-to-use web interface. Whether you want to generate images from a text prompt, edit existing images, upscale, inpaint, train custom styles, or call everything through a REST API, this project has you covered — right out of the box.
+
+---
+
+## 🚀 Key Features
+
+- **Text-to-Image (txt2img)** — Generate images from natural language prompts with fine-grained control over sampling, steps, resolution, and seed
+- **Image-to-Image (img2img)** — Feed an existing image + a prompt to guide transformations, including loopback and batch processing
+- **Inpainting & Outpainting** — Erase and regenerate specific regions of an image, or extend it beyond its original borders
+- **LoRA & Hypernetwork Support** — Load custom fine-tuned model adapters (LyCORIS, LoRA, HyperNetworks) directly from the UI
+- **Checkpoint Merger** — Blend up to 3 model checkpoints together into a single new model without writing a line of code
+- **Upscaling Suite** — Built-in upscalers: RealESRGAN, ESRGAN, SwinIR, Swin2SR, and LDSR for latent-space super resolution
+- **Face Restoration** — Automatically fix faces using GFPGAN or CodeFormer
+- **Textual Inversion** — Train and load custom text embeddings to inject concepts or styles into prompts
+- **X/Y/Z Plot Grid** — Systematically compare any combination of parameters across a batch of generations
+- **HighRes Fix** — Produce high-resolution images in a single click without common distortion artifacts
+- **Prompt Editing & Attention Control** — Shift prompts mid-generation and weight individual tokens with `(keyword:1.5)` syntax
+- **Full REST API** — Programmatically control everything via a FastAPI-backed HTTP API (`--api` flag)
+- **Extension System** — Install community-built extensions from within the UI itself
+- **Low-VRAM Modes** — `--medvram` and `--lowvram` flags make it viable on cards with as little as 4 GB (reported working on 2 GB)
+- **xFormers Acceleration** — Optional memory-efficient attention via Facebook's xFormers library for significant speed gains
+
+---
+
+## 🖥️ System Requirements & Prerequisites
+
+Before you begin, make sure your system meets the following requirements.
+
+### Hardware
+
+| Component | Minimum | Recommended |
+|-----------|---------|-------------|
+| GPU VRAM  | 4 GB    | 8 GB+       |
+| RAM       | 8 GB    | 16 GB+      |
+| Storage   | 10 GB   | 20 GB+      |
+
+> **CPU-only generation is possible** but extremely slow. A CUDA-capable NVIDIA GPU is strongly recommended.
+
+### Software
+
+| Dependency | Required Version | Notes |
+|------------|-----------------|-------|
+| **Python** | 3.10.6          | ⚠️ Specifically 3.10.6 — newer versions break PyTorch compatibility |
+| **Git**    | Any recent      | Used to clone the repo and manage extensions |
+| **CUDA Toolkit** | 11.8+ (NVIDIA) | Only needed for GPU acceleration |
+
+> **macOS (Apple Silicon):** Python and Git via [Homebrew](https://brew.sh/) work fine. See the Apple Silicon section below.
+
+---
+
+## ⚡ Installation — The Easy Way
+
+Follow the instructions for your operating system. The launch scripts handle virtual environment creation, dependency installation, and model downloading automatically.
+
+---
+
+### 🪟 Windows (NVIDIA GPU)
+
+**Option A — Release Package (Easiest, no Git needed)**
+
+1. Download `sd.webui.zip` from the [v1.0.0-pre release](https://github.com/AUTOMATIC1111/stable-diffusion-webui/releases/tag/v1.0.0-pre).
+2. Extract the zip to a folder of your choice (e.g., `C:\sd-webui`).
+3. Run `update.bat` once to pull the latest code.
+4. Run `run.bat` to launch.
+
+**Option B — Git Clone (Recommended for staying up-to-date)**
+
+```bat
+:: Step 1 — Install Python 3.10.6 from https://python.org
+:: ⚠️ Check "Add Python to PATH" during installation
+
+:: Step 2 — Install Git from https://git-scm.com/download/win
+
+:: Step 3 — Clone the repository
+git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui.git
+cd stable-diffusion-webui
+
+:: Step 4 — Launch (everything else is automatic)
+webui-user.bat
+```
+
+The first launch will take several minutes as it downloads PyTorch, dependencies, and the default SD 1.5 model checkpoint.
+
+---
+
+### 🐧 Linux (NVIDIA GPU)
+
+```bash
+# Step 1 — Install system dependencies
+
+# Debian / Ubuntu
+sudo apt install wget git python3 python3-venv libgl1 libglib2.0-0
+
+# Red Hat / Fedora
+sudo dnf install wget git python3 gperftools-libs libglvnd-glx
+
+# Arch / Manjaro
+sudo pacman -S wget git python3
+
+# Step 2 — Clone and launch (single command)
+git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
+cd stable-diffusion-webui
+bash webui.sh
+```
+
+> **Ubuntu 24.04 users:** Python 3.10 is not the default. Install it first:
+> ```bash
+> sudo add-apt-repository ppa:deadsnakes/ppa
+> sudo apt update
+> sudo apt install python3.10 python3.10-venv
+> export python_cmd="python3.10"   # Add this to webui-user.sh for persistence
+> ```
+
+---
+
+### 🍎 macOS (Apple Silicon — M1/M2/M3)
+
+```bash
+# Step 1 — Install Homebrew (if not already installed)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# Step 2 — Install dependencies
+brew install cmake protobuf rust python@3.10 git wget
+
+# Step 3 — Clone and launch
+git clone https://github.com/AUTOMATIC1111/stable-diffusion-webui
+cd stable-diffusion-webui
+bash webui.sh
+```
+
+---
+
+### 🌐 No Local GPU? Use a Cloud Service
+
+If you don't have a capable GPU, you can run the Web UI for free (with usage limits) on:
+
+- **Google Colab** — Search for "AUTOMATIC1111 Colab" notebooks in the [Online Services wiki](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Online-Services)
+- **Kaggle Notebooks** — Free T4 GPU access
+- **Vast.ai / RunPod** — Low-cost GPU rentals with pre-built SD Web UI templates
+
+---
+
+## 🔧 Configuration — `webui-user` File
+
+No `.env` file is used. Instead, customize your launch by editing the platform-specific user config file **before** running the app.
+
+**Windows:** Edit `webui-user.bat`
+
+```bat
+set PYTHON=                    :: Path to specific python binary (leave blank for auto-detect)
+set GIT=                       :: Path to specific git binary
+set VENV_DIR=                  :: Override virtual environment location
+set COMMANDLINE_ARGS=          :: ← Put your launch flags here
+```
+
+**Linux / macOS:** Edit `webui-user.sh`
+
+```bash
+export COMMANDLINE_ARGS=""     # ← Put your launch flags here
+export python_cmd="python3.10" # Optionally specify Python version
+```
+
+### Common Launch Flags
+
+Add these to `COMMANDLINE_ARGS`:
+
+| Flag | Description |
+|------|-------------|
+| `--medvram` | Reduces VRAM usage with a slight speed penalty. Use for 4–6 GB cards. |
+| `--lowvram` | Aggressively reduces VRAM; very slow but works on 2–3 GB cards. |
+| `--xformers` | Enables xFormers attention for faster generation on supported NVIDIA cards. |
+| `--api` | Enables the REST API alongside the Web UI (accessible at `/docs`). |
+| `--listen` | Exposes the UI on your local network (binds to `0.0.0.0`). |
+| `--port 8080` | Launches on a custom port (default: `7860`). |
+| `--share` | Creates a public Gradio tunnel URL (useful for Colab / remote access). |
+| `--no-half` | Disables float16 precision. Use if you see black or corrupted images. |
+| `--autolaunch` | Automatically opens the browser when the server starts. |
+| `--theme dark` | Forces dark or light theme (`dark` / `light`). |
+
+**Example `webui-user.sh` for a 6 GB NVIDIA card:**
+
+```bash
+export COMMANDLINE_ARGS="--medvram --xformers --autolaunch"
+```
+
+---
+
+## 🖼️ Usage Guide
+
+### Generating Your First Image
+
+1. Open your browser and navigate to `http://127.0.0.1:7860`
+2. You'll land on the **txt2img** tab
+3. Type a prompt describing what you want to see:
+
+```
+a photorealistic golden retriever sitting in a sunlit meadow, 
+depth of field, Canon 5D, 8k resolution
+```
+
+4. Optionally add a **Negative Prompt** to exclude unwanted elements:
+
+```
+blurry, low quality, distorted, extra limbs
+```
+
+5. Click **Generate** ✨
+
+---
+
+### Prompt Attention Syntax
+
+Control how much the model focuses on specific words using parentheses and weights:
+
+```
+a (beautiful:1.3) sunset over (mountains:0.8), cinematic lighting
+```
+
+- `(word)` — Slightly more attention (~1.1×)
+- `((word))` — Even more attention (~1.21×)
+- `(word:1.5)` — Explicit weight multiplier
+- `[word]` — Slightly less attention
+
+---
+
+### Using the REST API
+
+Enable the API by adding `--api` to your `COMMANDLINE_ARGS`, then send requests to `http://127.0.0.1:7860/api/v1/`:
+
+```python
+import requests, base64
+
+response = requests.post("http://127.0.0.1:7860/sdapi/v1/txt2img", json={
+    "prompt": "a majestic lion, oil painting, dramatic lighting",
+    "negative_prompt": "blurry, low quality",
+    "steps": 30,
+    "width": 512,
+    "height": 512,
+    "cfg_scale": 7,
+    "sampler_name": "DPM++ 2M Karras"
+})
+
+image_data = response.json()["images"][0]
+with open("output.png", "wb") as f:
+    f.write(base64.b64decode(image_data))
+
+print("Image saved to output.png")
+```
+
+> 📖 Full interactive API documentation is available at `http://127.0.0.1:7860/docs` when the server is running with `--api`.
+
+---
+
+## 📁 Project Structure
+
+```
+stable-diffusion-webui/
+├── webui.py                  # Main application entry point
+├── launch.py                 # Dependency installer & launcher
+├── webui-user.bat / .sh      # ← Your personal config lives here
+├── modules/                  # Core application logic
+│   ├── api/                  # FastAPI REST endpoints
+│   ├── cmd_args.py           # All available command-line flags
+│   └── shared_options.py     # Runtime settings definitions
+├── extensions-builtin/       # Bundled extensions (LoRA, ScuNET, SwinIR…)
+├── extensions/               # User-installed extensions (auto-created)
+├── models/                   # Model checkpoints, VAEs, LoRAs, upscalers
+│   ├── Stable-diffusion/     # Place .safetensors / .ckpt files here
+│   ├── Lora/                 # LoRA adapter files
+│   └── VAE/                  # VAE files
+├── embeddings/               # Textual Inversion embeddings
+├── outputs/                  # Generated images are saved here
+└── configs/                  # Model architecture YAML configs
+```
+
+---
+
+## 🔌 Adding Models
+
+1. Download a `.safetensors` or `.ckpt` model from [Hugging Face](https://huggingface.co/models?pipeline_tag=text-to-image) or [Civitai](https://civitai.com)
+2. Place it in `models/Stable-diffusion/`
+3. Click the 🔄 **Refresh** button next to the checkpoint dropdown in the UI (no restart needed)
+
+> ✅ **Prefer `.safetensors` format** — it's faster to load and protects against malicious pickle exploits.
+
+---
+
+## 🛠️ Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Black or green images | Add `--no-half` or `--no-half-vae` to your launch flags |
+| CUDA out of memory | Use `--medvram` (4–6 GB) or `--lowvram` (2–3 GB) |
+| Slow generation on NVIDIA | Install xFormers: add `--xformers` to launch flags |
+| "No module named torch" | Delete the `venv/` folder and re-run the launch script |
+| Port 7860 already in use | Add `--port 7861` (or any free port) to your launch flags |
+| Corrupted model download | Delete the partial file from `models/` and restart |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Before opening a PR, please read the [Contributing Guide](https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki/Contributing) on the project wiki. All PRs should target the `dev` branch, not `master`.
+
+---
+
+## 📄 License
+
+This project is licensed under the [GNU Affero General Public License v3.0](LICENSE.txt). See `Settings → Licenses` in the running UI for licenses of all borrowed components.
+
+---
+
+## 🙏 Credits
+
+Built on the shoulders of giants. Core dependencies and acknowledgements:
+
+- [Stable Diffusion](https://github.com/Stability-AI/stablediffusion) — Stability AI
+- [Gradio](https://gradio.app/) — The UI framework
+- [k-diffusion](https://github.com/crowsonkb/k-diffusion) — Sampling methods by Katherine Crowson
+- [xFormers](https://github.com/facebookresearch/xformers) — Memory-efficient attention by Meta Research
+- [GFPGAN](https://github.com/TencentARC/GFPGAN) & [CodeFormer](https://github.com/sczhou/CodeFormer) — Face restoration
+- [RealESRGAN](https://github.com/xinntao/ESRGAN) / [SwinIR](https://github.com/JingyunLiang/SwinIR) — Upscaling
+- [LyCORIS](https://github.com/KohakuBlueleaf/LyCORIS) — Extended LoRA support
+- Original Gradio script — Posted anonymously on 4chan. Thank you, Anonymous.
+
+---
+
+<p align="center">
+  <em>Happy generating! If you get stuck, the <a href="https://github.com/AUTOMATIC1111/stable-diffusion-webui/wiki">project wiki</a> and the <a href="https://www.reddit.com/r/StableDiffusion/">r/StableDiffusion</a> community are excellent resources.</em>
+</p>
